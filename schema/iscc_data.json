@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "IsccData",
+  "description": "ISCC data derived from the media asset",
+  "type": "object",
+  "required": [
+    "iscc_code",
+    "token_id",
+    "tophash"
+  ],
+  "properties": {
+    "iscc_code": {
+      "type": "string"
+    },
+    "token_id": {
+      "type": "string"
+    },
+    "tophash": {
+      "type": "string"
+    }
+  }
+}

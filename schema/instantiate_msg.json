@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "InstantiateMsg",
+  "type": "object",
+  "required": [
+    "name",
+    "symbol"
+  ],
+  "properties": {
+    "name": {
+      "description": "Name of the NFT contract",
+      "type": "string"
+    },
+    "symbol": {
+      "description": "Symbol of the NFT contract",
+      "type": "string"
+    }
+  }
+}
