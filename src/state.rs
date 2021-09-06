@@ -8,7 +8,10 @@ use cosmwasm_std::Coin;
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct IsccData {
     pub token_id: String,
-    pub iscc_code: String,
+    pub meta_id: String,
+    pub content_id: String,
+    pub data_id: String,   
+    pub instance_id: String, 
     pub tophash: String,
 }
 
@@ -28,10 +31,10 @@ pub struct License {
     pub price: Coin,
 }
 
-/// maps iscc code to iscc data
+/// maps content_id to iscc data
 pub const ISCC_DATA: Map<&str, IsccData> = Map::new("iscc_data");
 
-/// maps iscc code to token Id
+/// maps content_id (from iscc code) to token Id
 pub const ISCC: Map<&str, String> = Map::new("iscc");
 
 /// maps token id to licensing data

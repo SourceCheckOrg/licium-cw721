@@ -212,19 +212,19 @@
       "additionalProperties": false
     },
     {
-      "description": "Resolve token by ISCC code Return type:",
+      "description": "Resolve a nft token by content id (iscc) Return type: TokenResponse",
       "type": "object",
       "required": [
-        "get_by_iscc_code"
+        "get_by_content_id"
       ],
       "properties": {
-        "get_by_iscc_code": {
+        "get_by_content_id": {
           "type": "object",
           "required": [
-            "iscc_code"
+            "content_id"
           ],
           "properties": {
-            "iscc_code": {
+            "content_id": {
               "type": "string"
             }
           }

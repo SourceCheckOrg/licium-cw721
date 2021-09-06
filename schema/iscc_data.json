@@ -4,12 +4,24 @@
   "description": "ISCC data derived from the media asset",
   "type": "object",
   "required": [
-    "iscc_code",
+    "content_id",
+    "data_id",
+    "instance_id",
+    "meta_id",
     "token_id",
     "tophash"
   ],
   "properties": {
-    "iscc_code": {
+    "content_id": {
+      "type": "string"
+    },
+    "data_id": {
+      "type": "string"
+    },
+    "instance_id": {
+      "type": "string"
+    },
+    "meta_id": {
       "type": "string"
     },
     "token_id": {

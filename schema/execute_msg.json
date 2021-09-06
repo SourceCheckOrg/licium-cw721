@@ -272,17 +272,28 @@
     "MintMsg": {
       "type": "object",
       "required": [
+        "content_id",
+        "data_id",
         "description",
         "image",
-        "iscc_code",
+        "instance_id",
         "license_price",
         "license_url",
+        "meta_id",
         "name",
         "owner",
         "token_id",
         "tophash"
       ],
       "properties": {
+        "content_id": {
+          "description": "Content ID (ISCC code)",
+          "type": "string"
+        },
+        "data_id": {
+          "description": "Data ID (ISCC code)",
+          "type": "string"
+        },
         "description": {
           "description": "Describes the asset to which this NFT represents (may be empty)",
           "type": "string"
@@ -291,8 +302,8 @@
           "description": "A URI pointing to an image representing the asset",
           "type": "string"
         },
-        "iscc_code": {
-          "description": "ISCC code",
+        "instance_id": {
+          "description": "Instance ID (ISCC code)",
           "type": "string"
         },
         "license_price": {
@@ -305,6 +316,10 @@
         },
         "license_url": {
           "description": "License url",
+          "type": "string"
+        },
+        "meta_id": {
+          "description": "Meta ID (ISCC code)",
           "type": "string"
         },
         "name": {

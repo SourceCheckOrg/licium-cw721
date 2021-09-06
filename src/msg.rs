@@ -1,6 +1,6 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use cosmwasm_std::{Binary, Coin};
+use cosmwasm_std::{Addr, Binary, Coin};
 use cw721::Expiration;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -15,10 +15,6 @@ pub struct InstantiateMsg {
 pub struct MintMsg {
     /// Unique ID of the NFT
     pub token_id: String,
-    /// ISCC code 
-    pub iscc_code: String,
-    /// Tophash
-    pub tophash: String,
     /// The owner of the newly minter NFT
     pub owner: String,
     /// Identifies the asset to which this NFT represents
@@ -27,6 +23,16 @@ pub struct MintMsg {
     pub description: String,
     /// A URI pointing to an image representing the asset
     pub image: String,
+    /// Meta ID (ISCC code) 
+    pub meta_id: String,
+    /// Content ID (ISCC code) 
+    pub content_id: String,
+    /// Data ID (ISCC code) 
+    pub data_id: String,
+    /// Instance ID (ISCC code) 
+    pub instance_id: String,
+    /// Tophash
+    pub tophash: String,
     /// License url
     pub license_url: String,
     /// Price to license 
@@ -139,24 +145,24 @@ pub enum QueryMsg {
         limit: Option<u32>,
     },
 
-    /// Resolve token by ISCC code
-    /// Return type: 
-    GetByIsccCode {
-        iscc_code: String,
+    /// Resolve a nft token by content id (iscc)
+    /// Return type: TokenResponse
+    GetByContentId {
+        content_id: String,
     }
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
 pub struct TokenResponse {
     pub token_id: String,
-    /// Describes the asset to which this NFT represents
+    pub owner: Addr,
     pub name: String,
     pub description: Option<String>,
-    /// "A URI pointing to a resource with mime type image/* representing the asset to which this
-    /// NFT represents. Consider making any images at a width between 320 and 1080 pixels and aspect
-    /// ratio between 1.91:1 and 4:5 inclusive.
-    /// TODO: Use https://docs.rs/url_serde for type-safety
     pub image: Option<String>,
+    pub meta_id: String,
+    pub content_id: String,
+    pub data_id: String,
+    pub instance_id: String,
     pub license_url: String,
     pub license_price: Coin,
 }

@@ -113,18 +113,21 @@ pub fn execute_mint(
     // update tokens count
     increment_tokens(deps.storage)?;
 
-    // store iscc data 
+    // store iscc data related to content id 
     let iscc_data = IsccData {
         token_id: msg.token_id.clone(),
-        iscc_code: msg.iscc_code.clone(),
+        meta_id: msg.meta_id.clone(),
+        content_id: msg.content_id.clone(),
+        data_id: msg.data_id.clone(),
+        instance_id: msg.instance_id.clone(),
         tophash: msg.tophash.clone(),
     };
-    ISCC_DATA.save(deps.storage, &msg.iscc_code, &iscc_data)?;
+    ISCC_DATA.save(deps.storage, &msg.content_id, &iscc_data)?;
 
-    // associate issc code with token
+    // associate iscc content id with token
     ISCC.update(
         deps.storage, 
-        &msg.iscc_code, 
+        &msg.content_id, 
         | old | match old {
             Some(_) => Err(ContractError::Claimed {}),
             None => Ok(msg.token_id.clone())
@@ -143,7 +146,7 @@ pub fn execute_mint(
         .add_attribute("action", "mint")
         .add_attribute("token_id", msg.token_id)
         .add_attribute("name", msg.name)
-        .add_attribute("iscc_code", msg.iscc_code)
+        .add_attribute("content_id", msg.content_id)
         .add_attribute("owner", msg.owner)
     )
 }
@@ -246,27 +249,33 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         } => {
             to_binary(&query_all_tokens(deps, start_after, limit)?)
         },
-        QueryMsg::GetByIsccCode {
-            iscc_code
+        QueryMsg::GetByContentId {
+            content_id
         } => {
-            to_binary(&get_by_iscc_code(deps, iscc_code)?)
+            to_binary(&get_by_iscc_code(deps, content_id)?)
         }
     }
 }
 
-fn get_by_iscc_code(deps: Deps, iscc_code: String) -> StdResult<Option<TokenResponse>> {
-    let token_id_result = ISCC.load(deps.storage, &iscc_code);
+fn get_by_iscc_code(deps: Deps, content_id: String) -> StdResult<Option<TokenResponse>> {
+    let token_id_result = ISCC.load(deps.storage, &content_id);
 
     match token_id_result {
         Ok(token_id) => {
             let token_info = tokens().load(deps.storage, &token_id)?;
+            let iscc_data = ISCC_DATA.load(deps.storage, &content_id)?;
             let licensing = LICENSING.load(deps.storage, &token_id)?;
             
             Ok(Some(TokenResponse {
                 token_id: token_id,
+                owner: token_info.owner,
                 name: token_info.name,
                 description: Some(token_info.description),
                 image: token_info.image,
+                meta_id: iscc_data.meta_id,
+                content_id: iscc_data.content_id,
+                data_id: iscc_data.data_id,
+                instance_id: iscc_data.instance_id,
                 license_url: licensing.url,
                 license_price: licensing.price,
             }))
