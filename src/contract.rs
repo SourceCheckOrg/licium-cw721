@@ -1,7 +1,7 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_binary, BankMsg, Binary, BlockInfo, Coin, Deps, DepsMut, Env, MessageInfo, Order, Pair, 
+    to_binary, BankMsg, Binary, BlockInfo, Deps, DepsMut, Env, MessageInfo, Order, Pair, 
     Response, StdError, StdResult,
 };
 
@@ -20,7 +20,7 @@ use cw721_base::ContractError; // TODO use custom errors instead
 use cw721_base::state::{Approval, CONTRACT_INFO, increment_tokens, num_tokens, OPERATORS, TokenInfo, tokens};
 use cw_storage_plus::Bound;
 
-use crate::msg::{InstantiateMsg, ExecuteMsg, MintMsg, QueryMsg};
+use crate::msg::{InstantiateMsg, ExecuteMsg, MintMsg, QueryMsg, TokenResponse};
 use crate::state::{IsccData, ISCC_DATA, ISCC, License, LICENSE, Licensing, LICENSING };
 
 // version info for migration info
@@ -58,8 +58,7 @@ pub fn execute(
         ExecuteMsg::Mint(msg) => execute_mint(deps, env, info, msg),
         ExecuteMsg::License {
             token_id,
-            price
-        } => execute_licensing(deps, info, token_id, price),
+        } => execute_licensing(deps, info, token_id),
         ExecuteMsg::Approve { 
             spender,
             token_id, 
@@ -97,8 +96,8 @@ pub fn execute_mint(
     // create the token
     let token = TokenInfo {
         name: msg.name.clone(),
-        description: msg.description.clone().unwrap_or_default().clone(),
-        image: msg.image.clone(),
+        description: msg.description.clone(),
+        image: Some(msg.image.clone()),
         owner: info.sender,
         approvals: vec![],
     };
@@ -126,15 +125,16 @@ pub fn execute_mint(
     ISCC.update(
         deps.storage, 
         &msg.iscc_code, 
-        |old | match old {
+        | old | match old {
             Some(_) => Err(ContractError::Claimed {}),
-            None => Ok(msg.iscc_code.clone())
+            None => Ok(msg.token_id.clone())
         }
     )?;
 
     // store licensing data
     let licensing = Licensing {
-        token_id: msg.token_id.clone(), 
+        token_id: msg.token_id.clone(),
+        url: msg.license_url.clone(),
         price: msg.license_price,
     };
     LICENSING.save(deps.storage, &msg.token_id, &licensing)?;
@@ -144,7 +144,6 @@ pub fn execute_mint(
         .add_attribute("token_id", msg.token_id)
         .add_attribute("name", msg.name)
         .add_attribute("iscc_code", msg.iscc_code)
-        .add_attribute("tophash", msg.tophash)
         .add_attribute("owner", msg.owner)
     )
 }
@@ -153,20 +152,22 @@ pub fn execute_licensing(
     deps: DepsMut,
     info: MessageInfo,
     token_id: String,
-    price: Coin,
 ) -> Result<Response, ContractError> {
     // load licensing info 
     let licensing = LICENSING.load(deps.storage, &token_id)?;
 
-    // TODO handle multiple tokens
-    // check if the token is the same and the amount sent is enough to pay for the license
-    if info.funds[0].denom != licensing.price.denom ||  info.funds[0].amount < licensing.price.amount {
+    // extract coins sent
+    // TODO handle multiple coins
+    let coins_sent = &info.funds[0];
+    
+    // check if the coins sent are the ones accepted for licensing and if the amount sent is enough
+    if coins_sent.denom != licensing.price.denom ||  coins_sent.amount < licensing.price.amount {
         return Err(ContractError::Unauthorized{}); // TODO throw custom error
     }
 
     // load token info and send funds to token owner
     let token_info = tokens().load(deps.storage, &token_id)?;
-    BankMsg::Send {
+    let send_funds_msg = BankMsg::Send {
         to_address: token_info.owner.to_string(),
         amount: vec![licensing.price],
     };
@@ -174,15 +175,16 @@ pub fn execute_licensing(
     // save license \transaction
     let license = License {
         token_id: token_id.clone(),
-        price: price.clone(),
+        price: coins_sent.clone(),
         licensee: info.sender.clone(),
     };
     LICENSE.save(deps.storage, (&info.sender, &token_id), &license)?;
 
     Ok(Response::new()
+        .add_message(send_funds_msg)
         .add_attribute("action", "license")
         .add_attribute("token_id", token_id)
-        .add_attribute("price", price.amount)
+        .add_attribute("price", info.funds[0].amount)
         .add_attribute("licensee", info.sender))
 }
 
@@ -243,7 +245,33 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             limit 
         } => {
             to_binary(&query_all_tokens(deps, start_after, limit)?)
+        },
+        QueryMsg::GetByIsccCode {
+            iscc_code
+        } => {
+            to_binary(&get_by_iscc_code(deps, iscc_code)?)
         }
+    }
+}
+
+fn get_by_iscc_code(deps: Deps, iscc_code: String) -> StdResult<Option<TokenResponse>> {
+    let token_id_result = ISCC.load(deps.storage, &iscc_code);
+
+    match token_id_result {
+        Ok(token_id) => {
+            let token_info = tokens().load(deps.storage, &token_id)?;
+            let licensing = LICENSING.load(deps.storage, &token_id)?;
+            
+            Ok(Some(TokenResponse {
+                token_id: token_id,
+                name: token_info.name,
+                description: Some(token_info.description),
+                image: token_info.image,
+                license_url: licensing.url,
+                license_price: licensing.price,
+            }))
+        },
+        Err(_) => Ok(None)
     }
 }
 

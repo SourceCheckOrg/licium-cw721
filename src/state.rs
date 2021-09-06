@@ -16,6 +16,7 @@ pub struct IsccData {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Licensing {
     pub token_id: String,
+    pub url: String,
     pub price: Coin,
 }
 

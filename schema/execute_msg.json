@@ -182,7 +182,7 @@
       "additionalProperties": false
     },
     {
-      "description": "By a license",
+      "description": "Buy a license",
       "type": "object",
       "required": [
         "license"
@@ -191,13 +191,9 @@
         "license": {
           "type": "object",
           "required": [
-            "price",
             "token_id"
           ],
           "properties": {
-            "price": {
-              "$ref": "#/definitions/Coin"
-            },
             "token_id": {
               "type": "string"
             }
@@ -276,8 +272,11 @@
     "MintMsg": {
       "type": "object",
       "required": [
+        "description",
+        "image",
         "iscc_code",
         "license_price",
+        "license_url",
         "name",
         "owner",
         "token_id",
@@ -286,17 +285,11 @@
       "properties": {
         "description": {
           "description": "Describes the asset to which this NFT represents (may be empty)",
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": "string"
         },
         "image": {
           "description": "A URI pointing to an image representing the asset",
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": "string"
         },
         "iscc_code": {
           "description": "ISCC code",
@@ -309,6 +302,10 @@
               "$ref": "#/definitions/Coin"
             }
           ]
+        },
+        "license_url": {
+          "description": "License url",
+          "type": "string"
         },
         "name": {
           "description": "Identifies the asset to which this NFT represents",

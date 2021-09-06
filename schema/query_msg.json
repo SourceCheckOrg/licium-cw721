@@ -210,6 +210,27 @@
         }
       },
       "additionalProperties": false
+    },
+    {
+      "description": "Resolve token by ISCC code Return type:",
+      "type": "object",
+      "required": [
+        "get_by_iscc_code"
+      ],
+      "properties": {
+        "get_by_iscc_code": {
+          "type": "object",
+          "required": [
+            "iscc_code"
+          ],
+          "properties": {
+            "iscc_code": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
     }
   ]
 }
